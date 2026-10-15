@@ -1,1 +1,1 @@
-CREW_PUBLIC_GATEWAY_FIXTURE_V1: disposable synthetic merge observation only.
+CREW_PUBLIC_GATEWAY_FIXTURE_V1: deliberately invalid negative-test marker.
