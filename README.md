@@ -12,3 +12,5 @@ crew-fixture/head-*. The default branch is bootstrap only.
 
 The fixture check validates its synthetic marker contract and permitted file changes.
 It is not production product verification or a completed gateway integration.
+
+Public synthetic base-drift counterexample only.
