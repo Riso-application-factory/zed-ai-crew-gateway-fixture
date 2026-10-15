@@ -1,0 +1,43 @@
+name: Crew fixture checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: ['crew-fixture/base-*']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  fixture-contract:
+    name: fixture-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      FIXTURE_REPOSITORY: Riso-application-factory/zed-ai-crew-gateway-fixture
+      EVENT_REPOSITORY: ${{ github.repository }}
+      EVENT_NAME: ${{ github.event_name }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+    steps:
+      - name: Fetch exact public fixture objects and run base-owned contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$EVENT_REPOSITORY" = "$FIXTURE_REPOSITORY"
+          test "$HEAD_REPOSITORY" = "$FIXTURE_REPOSITORY"
+          [[ "$HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]
+          git init fixture
+          cd fixture
+          git remote add origin "https://github.com/$FIXTURE_REPOSITORY.git"
+          git fetch --no-tags origin "$HEAD_SHA"
+          git checkout --detach "$HEAD_SHA"
+          if [[ "$EVENT_NAME" = pull_request ]]; then
+            [[ "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]]
+            git fetch --no-tags origin "$BASE_SHA"
+            contract_file=$(mktemp)
+            git show "$BASE_SHA:fixture_contract.py" > "$contract_file"
+            python3 "$contract_file" --base "$BASE_SHA" --head "$HEAD_SHA"
+          else
+            python3 fixture_contract.py
+          fi
